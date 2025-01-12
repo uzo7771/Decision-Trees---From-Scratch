@@ -10,7 +10,7 @@ class TreeNode:
         self.value = value
 
 class DecisionTree:
-    def __init__(self, X, y, max_depth=10, min_samples_split=5):
+    def __init__(self, X, y, max_depth=10, min_samples_split=5, min_samples_leaf = 1):
         if len(X.shape) == 1:
             self.X = X = X.reshape(-1, 1)
         self.X = X
@@ -18,6 +18,7 @@ class DecisionTree:
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.root = None
+        self.min_samples_leaf = min_samples_leaf
         self.feature_importance = np.zeros(self.X.shape[1])
     def _Entropy(self, y):
         # Calculates the entropy of the labels.
@@ -70,6 +71,9 @@ class DecisionTree:
         
         left_mask = X[:, best_feature] <= best_threshold
         right_mask = ~left_mask
+
+        if len(y[left_mask]) < self.min_samples_leaf or len(y[right_mask]) < self.min_samples_leaf:
+            return TreeNode(value=np.bincount(y).argmax())
 
         left_node = self._build_tree(X[left_mask], y[left_mask], depth + 1)
         right_node = self._build_tree(X[right_mask], y[right_mask], depth + 1)
